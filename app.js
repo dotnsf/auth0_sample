@@ -29,7 +29,7 @@ var strategy = new Auth0Strategy({
   callbackURL: settings_auth0_callback_url
 }, function( accessToken, refreshToken, extraParams, profile, done ){
   //console.log( accessToken, refreshToken, extraParams, profile );
-  profile.idToken = extraParams.id_token;  //. No id_token at this moment?
+  profile.idToken = extraParams.id_token;
   return done( null, profile );
 });
 passport.use( strategy );
@@ -66,20 +66,48 @@ app.use( function( req, res, next ){
 });
 
 
+//. login
 app.get( '/auth0/login', passport.authenticate( 'auth0', {
-  scope: settings.scope
+  scope: settings.auth0_scope   //. #1
 }, function( req, res ){
   res.redirect( '/' );
 }));
+
+//. logout
+app.get( '/auth0/logout', function( req, res ){
+  req.logout();
+  res.redirect('/');
+});
 
 app.get( '/', function( req, res ){
   if( !req.user ){ 
     res.redirect( '/auth0/login' );
   }else{
-    //console.log( req.user );              //. { name: {}, _json: {}, _raw: '{}' }
-    //console.log( req.session.passport );  //. { name: {}, _json: {}, _raw: '{}' }
+    /* req.user = 
+    {
+      "displayName":"name@abc.com",
+      "id":"auth0|61xxxxx",
+      "user_id":"auth0|61xxxxx",
+      "provider":"auth0",
+      "name":{},
+      "emails":[{"value":"name@abc.com"}],
+      "picture":"https://s.gravatar.com/avatar/xxxxx?s=480&r=pg&d=https%3A%2F%2Fcdn.auth0.com%2Favatars%2Fxx.png",
+      "nickname":"name",
+      "_json":{
+        "sub":"auth0|61xxxxx",
+        "nickname":"name",
+        "name":"name@abc.com",
+        "picture":"https://s.gravatar.com/avatar/xxxxx?s=480&r=pg&d=https%3A%2F%2Fcdn.auth0.com%2Favatars%2Fxx.png",
+        "updated_at":"2021-08-26T01:00:20.403Z",
+        "email":"name@abc.com",
+        "email_verified":false
+      },
+      "_raw":"{\"sub\":\"auth0|61xxxxx\",\"nickname\":\"name\",\"name\":\"name@abc.com\",\"picture\":\"https://s.gravatar.com/avatar/xxxxx?s=480&r=pg&d=https%3A%2F%2Fcdn.auth0.com%2Favatars%2Fxx.png\",\"updated_at\":\"2021-08-26T01:00:20.403Z\",\"email\":\"name@abc.com\",\"email_verified\":false}",
+      "idToken":"eyXXXXX.eyXXXXX.XXXXX-XXXXX-XXXXX"
+    }
+    */
     res.contentType( 'application/json; charset=utf-8' );
-    res.write( JSON.stringify( { status: true, user: req.user } ) );
+    res.write( JSON.stringify( { status: true, user: { id: req.user.id, name: req.user.nickname, email: req.user.displayName, image_url: req.user.picture } } ) );
     res.end();
   }
 });
@@ -89,7 +117,7 @@ app.get( '/callback', async function( req, res, next ){
     if( err ) return next( err );
     if( !user ) return res.redirect( '/auth0/login' );
 
-    //console.log( 'user', user );   //. No user profile at this moment ?
+    //console.log( 'user', user );
     req.logIn( user, function( err ){
       if( err ) return next( err );
       res.redirect( '/' );

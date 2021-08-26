@@ -6,6 +6,15 @@
 Sample app
 
 
+## How to use
+
+1. Edit `settings.js` with your Auth0 credentials.
+
+2. Edit callback URL in your Auth0 dashboard, if needed.
+
+3. Run with npm & node.
+
+
 ## References
 
 https://dev.classmethod.jp/articles/oidc-integration-with-auth0/

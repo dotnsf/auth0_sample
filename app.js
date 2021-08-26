@@ -29,7 +29,7 @@ var strategy = new Auth0Strategy({
   callbackURL: settings_auth0_callback_url
 }, function( accessToken, refreshToken, extraParams, profile, done ){
   //console.log( accessToken, refreshToken, extraParams, profile );
-  profile.idToken = extraParams.id_token;
+  profile.idToken = extraParams.id_token;  //. No id_token at this moment?
   return done( null, profile );
 });
 passport.use( strategy );
@@ -44,7 +44,10 @@ passport.deserializeUser( function( user, done ){
 //. Session
 var sess = {
   secret: 'MySecret',
-  cookie: {},
+  cookie: {
+    path: '/',
+    maxAge: (1 * 24 * 60 * 60 * 1000)
+  },
   resave: false,
   saveUninitialized: true
 };
@@ -70,27 +73,26 @@ app.get( '/auth0/login', passport.authenticate( 'auth0', {
 }));
 
 app.get( '/', function( req, res ){
-  console.log( 'GET /' );
   if( !req.user ){ 
     res.redirect( '/auth0/login' );
   }else{
-    console.log( req.user );  //. { name: {}, _json: {}, _raw: '{}' }
+    //console.log( req.user );              //. { name: {}, _json: {}, _raw: '{}' }
+    //console.log( req.session.passport );  //. { name: {}, _json: {}, _raw: '{}' }
     res.contentType( 'application/json; charset=utf-8' );
-    res.write( JSON.stringify( { status: true, path: '/' } ) );
+    res.write( JSON.stringify( { status: true, user: req.user } ) );
     res.end();
   }
 });
 
 app.get( '/callback', async function( req, res, next ){
-  console.log( 'GET /callback' );
   passport.authenticate( 'auth0', function( err, user ){
     if( err ) return next( err );
     if( !user ) return res.redirect( '/auth0/login' );
 
-    console.log( 'user', user );   //. この時点で user プロファイルに何も設定されていないのがおかしい？
+    //console.log( 'user', user );   //. No user profile at this moment ?
     req.logIn( user, function( err ){
       if( err ) return next( err );
-      res.redirect( '/' );  //. ここは実行されているっぽい
+      res.redirect( '/' );
     })
   })( req, res, next );
 });

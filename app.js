@@ -112,12 +112,11 @@ app.get( '/', function( req, res ){
   }
 });
 
-app.get( '/callback', async function( req, res, next ){
+app.get( '/auth0/callback', async function( req, res, next ){
   passport.authenticate( 'auth0', function( err, user ){
     if( err ) return next( err );
     if( !user ) return res.redirect( '/auth0/login' );
 
-    //console.log( 'user', user );
     req.logIn( user, function( err ){
       if( err ) return next( err );
       res.redirect( '/' );

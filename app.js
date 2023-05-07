@@ -107,7 +107,7 @@ app.get( '/', function( req, res ){
     }
     */
     res.contentType( 'application/json; charset=utf-8' );
-    res.write( JSON.stringify( { status: true, user: { id: req.user.id, name: req.user.nickname, email: req.user.displayName, image_url: req.user.picture } } ) );
+    res.write( JSON.stringify( { status: true, user: { id: req.user.id, name: req.user.displayName, email: req.user.nickname, image_url: req.user.picture } } ) );
     res.end();
   }
 });
